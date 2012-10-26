@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+
+usage() {
+  {
+    echo "usage: rbenv update"
+    echo
+  } >&2
+
+  [ -z "$1" ] || exit "$1"
+}
+
+# Provide rbenv completions
+if [ "$1" = "--complete" ]; then
+  echo --help
+  exit
+fi
+
+while [ "$1" != "" ]; do
+  while getopts "h" opt; do
+    case "$opt" in
+      \?) usage 1;;
+      h)  usage 0;;
+    esac
+  done
+  shift $(( $OPTIND - 1 ))
+  case "$1" in
+    "--help") usage 0;;
+    *)
+      usage 1
+      if [ "$1" != "" ]; then
+        REMAINS+=("$1")
+        shift
+      fi
+      ;;
+  esac
+done
+
+ls -d1 ~/.rbenv ~/.rbenv/plugins/* | while read i; do
+   ( cd $i; pwd; git pull )
+   echo
+done
+
