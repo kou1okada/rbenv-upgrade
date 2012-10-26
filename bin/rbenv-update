@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
+#
+# update subcommand for rbenv.
+# This script is distributed under the MIT license.
+#
 
 usage() {
   {
@@ -10,24 +14,27 @@ usage() {
 }
 
 # Provide rbenv completions
-if [ "$1" = "--complete" ]; then
-  echo --help
+completion() {
   exit
-fi
+}
 
 while [ "$1" != "" ]; do
-  while getopts "h" opt; do
-    case "$opt" in
-      \?) usage 1;;
-      h)  usage 0;;
-    esac
-  done
-  shift $(( $OPTIND - 1 ))
   case "$1" in
-    "--help") usage 0;;
+    --complete)
+      completion
+      shift
+      ;;
+    -h|--help)
+      usage 0
+      shift
+      ;;
     *)
-      usage 1
-      if [ "$1" != "" ]; then
+      if getopts "" opt; then
+        case "$opt" in
+          ?) usage 1;;
+        esac
+        shift $(( $OPTIND - 1 ))
+      else
         REMAINS+=("$1")
         shift
       fi
@@ -35,8 +42,11 @@ while [ "$1" != "" ]; do
   esac
 done
 
+if [ "$REMAINS" != "" ]; then
+  usage 1
+fi
+
 ls -d1 ~/.rbenv ~/.rbenv/plugins/* | while read i; do
    ( cd $i; pwd; git pull )
    echo
 done
-
