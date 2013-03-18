@@ -1,13 +1,16 @@
 #!/usr/bin/env bash
 #
-# update subcommand for rbenv.
-# This script is distributed under the MIT license.
+# rbenv-update - update subcommand for rbenv.
 #
+# Copyright (c) 2013 Koichi OKADA. All rights reserved.
+# This script is distributed under the MIT license.
+# http://www.opensource.org/licenses/mit-license.php
 
 usage() {
   {
-    echo "usage: rbenv update"
+    echo "Usage: rbenv update"
     echo
+    echo "Update rbenv and all plugins using git."
   } >&2
 
   [ -z "$1" ] || exit "$1"
@@ -46,7 +49,15 @@ if [ "$REMAINS" != "" ]; then
   usage 1
 fi
 
-ls -d1 ~/.rbenv ~/.rbenv/plugins/* | while read i; do
-   ( cd $i; pwd; git pull )
-   echo
+for i in ~/.rbenv ~/.rbenv/plugins/*; do
+  if [ -d "$i" ]; then
+    cd "$i"
+    if [ -d .git ]; then
+      echo -e "\e[31;1mupdate using git:\e[0m `pwd`"
+      git pull
+    else
+      echo -e "\e[31;1mupdate is not available:\e[0m `pwd`"
+    fi
+    echo
+  fi
 done
