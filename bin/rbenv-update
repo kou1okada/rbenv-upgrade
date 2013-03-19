@@ -55,6 +55,16 @@ for i in ~/.rbenv ~/.rbenv/plugins/*; do
     if [ -d .git ]; then
       echo -e "\e[31;1mupdate using git:\e[0m `pwd`"
       git pull
+    elif [ -d .bzr ]; then
+      echo -e "\e[31;1mupdate using bzr:\e[0m `pwd`"
+      bzr pull
+    elif [ -d .hg ]; then
+      echo -e "\e[31;1mupdate using hg:\e[0m `pwd`"
+      hg pull
+      hg update
+    elif [ -d .svn ]; then
+      echo -e "\e[31;1mupdate using svn:\e[0m `pwd`"
+      svn update
     else
       echo -e "\e[31;1mupdate is not available:\e[0m `pwd`"
     fi
