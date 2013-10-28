@@ -1,63 +1,183 @@
 #!/usr/bin/env bash
 #
+# Summary: upgrade the rbenv and installed plugins.
+#
+# Usage: rbenv upgrade [ options ] [ targets ... ]
+#
+#   -a/--all         upgrade all targets
+#   -l/--list        list targets
+#   -n/--dry-run     perform a trial run with no changes made
+#   --no-color       no color output
+#
 # rbenv-upgrade - upgrade subcommand for rbenv.
 # Copyright (c) 2013 Koichi OKADA. All rights reserved.
 # This script is distributed under the MIT license.
 # http://www.opensource.org/licenses/mit-license.php
-#
-# Summary: upgrade the rbenv and all plugins.
-#
-# Usage: rbenv upgrade [options]
-#
-#   -n/--dry-run     perform a trial run with no changes made
-#
 
 usage() {
-  rbenv-help install 2>/dev/null || sed -ne '/^#/!q;s/.//;s/.//;1,4d;p' < "$0"
+  rbenv-help upgrade 2>/dev/null || sed -ne '/^#/!q;s/.//;s/.//;1,4d;p' < "$0"
   [ -z "$1" ] || exit "$1"
+}
+
+nocolor() {
+  if [ "$1" != "" ]; then
+    sed -r 's/\x1b\[([0-9]{1,2}(;[0-9]{1,2})*)?[m]//g'
+  else
+    cat
+  fi
+}
+
+update_alltargets() {
+  ALLTARGETS=(.)
+  if [ "$RBENV_ROOT" != "" ]; then
+    readarray -t ALLTARGETS < <(
+      echo .
+      find "$RBENV_ROOT"/plugins/ -mindepth 1 -maxdepth 1 -xtype d -printf "%f\n"
+    )
+  else
+    echo -e "\e[32;1mError:\e[0m \$RBENV_ROOT is not set." | nocolor  $OPT_no_color
+    exit 1
+  fi
 }
 
 # Provide rbenv completions
 completion() {
+  cat <<-EOD
+		$ALLTARGETS
+		-a
+		-h
+		-n
+		--all
+		--dry-run
+		--help
+		--no-color
+	EOD
   exit
+}
+
+upgrade() {
+  (
+    echo -e "\e[32;1mUpgrade:\e[0m $i" | nocolor $OPT_no_color
+    cd "$i"
+    if [ -d .git ]; then
+      if [ "$OPT_dry_run" = "" ]; then
+        git pull
+      else
+        git fetch --dry-run --verbose
+      fi
+    else
+      echo -e "\e[32;1mSKip:\e[0m  No .git directory exists." | nocolor $OPT_no_color
+    fi
+    echo
+  )
+}
+
+get_target_dir() {
+  local TARGETDIR
+  case "$1" in
+    .) TARGETDIR="${RBENV_ROOT}"            ;;
+    *) TARGETDIR="${RBENV_ROOT}/plugins/$i" ;;
+  esac
+  if [ ! -d "$TARGETDIR" ]; then
+    echo -e "\e[31;1mError:\e[0m $TARGETDIR is not directory." >&2 | nocolor $OPT_no_color
+    usage 1
+  fi
+  echo "$TARGETDIR"
+}
+
+# Usage: update_action option action overwrite
+update_action() {
+  if [ "$ACTION" != "" ]; then
+    echo -e "\e[31;1mWarning:\e[0m action is overwritten from $ACTION to $1 by $2." >&2 | nocolor $OPT_no_color
+    usage 1
+  fi
+  ACTION="$1"
 }
 
 while [ "$1" != "" ]; do
   case "$1" in
+    -a|--all)
+      OPT_all="$1"
+      update_action upgrade "$1"
+      shift
+      ;;
     --complete)
-      completion
+      OPT_complete="$1"
       shift
       ;;
     -h|--help)
-      usage 0
+      OPT_help="$1"
+      update_action help "$1"
+      shift
+      ;;
+    -l|--list)
+      OPTS_list="$1"
+      update_action list "$1"
       shift
       ;;
     -n|--dry-run)
-      OPT_N=1
+      OPT_dry_run="$1"
+      shift
+      ;;
+    --no-color)
+      OPT_no_color="$1"
       shift
       ;;
     *)
       if getopts "" opt; then
         case "$opt" in
-          ?) usage 1;;
+          ?)
+            echo -e "\e[31;1mError:\e[0m unknown option $1." | nocolor $OPT_no_color
+            usage 1 ;;
         esac
         shift $(( $OPTIND - 1 ))
       else
-        REMAINS+=("$1")
+        TARGETS+=("$1")
         shift
       fi
       ;;
   esac
 done
 
-if [ "$REMAINS" != "" ]; then
-  usage 1
+if [ "$ACTION" = "" ]; then
+  ACTION=upgrade
 fi
 
-ls -d1 ~/.rbenv ~/.rbenv/plugins/* | while read i; do
-   echo -e "\e[32;1mUpgrade:\e[30;0m $i"
-   if [ "$OPT_N" = "" ]; then
-     echo "( cd $i; pwd; git pull )"
-   fi
-   echo
+if [ "$OPT_help" != "" ]; then
+  usage 0
+fi
+
+if [ "$OPT_complete" != "" ]; then
+  completion
+fi
+
+update_alltargets
+
+if [ "$OPT_all" != "" ]; then
+  if [ "$TARGETS" != "" ]; then
+    echo -e "\e[32;1mWarning:\e[0m $OPT_all options is set, but targets is also set." | nocolor $OPT_no_color
+  fi
+  TARGETS=("${ALLTARGETS[@]}")
+fi
+
+for i in "${TARGETS[@]}"; do
+  TARGETDIRS+=("$(get_target_dir "$i")")
 done
+
+case "$ACTION" in
+  upgrade)
+    for i in "${TARGETDIRS[@]}"; do
+      upgrade "$i"
+    done
+    ;;
+  list)
+    printf "%-24s %s\n" "target" "target_dir"
+    for i in "${ALLTARGETS[@]}"; do
+      printf "%-24s %s\n" "$i" "$(get_target_dir)"
+    done
+    ;;
+  *)
+    echo -e "\e[31;1mError:\e[0m unknown action "$ACTION"." | nocolor $OPT_no_color
+    usage 1
+    ;;
+esac
