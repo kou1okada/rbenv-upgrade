@@ -14,5 +14,5 @@ Upsage
 
 If you want to upgrade the rbenv and all plugins, you could use:
 
-    git upgrade
+    rbenv upgrade -a
 
