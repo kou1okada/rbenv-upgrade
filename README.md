@@ -9,7 +9,7 @@ If you already have installed rbenv to `~/.rbenv`, installation of rbenv-update 
 
     git clone git://github.com/kou1okada/rbenv-upgrade.git ~/.rbenv/plugins/rbenv-upgrade
 
-Upsage
+Usage
 =======
 
 If you want to upgrade the rbenv and all plugins, you could use:
