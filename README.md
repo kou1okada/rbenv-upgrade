@@ -22,3 +22,7 @@ Usage: rbenv upgrade [ options ] [ targets ... ]
   -n/--dry-run     perform a trial run with no changes made
   --no-color       no color output
 ```
+
+# License
+
+This project is distributed under the MIT license.
