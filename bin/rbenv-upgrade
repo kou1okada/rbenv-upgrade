@@ -70,8 +70,8 @@ function upgrade () # <target dir>
 #   Do upgrade target directory.
 {
   (
-    echo -e "\e[32;1mUpgrade:\e[0m $i" | nocolor $OPT_no_color
-    cd "$i"
+    echo -e "\e[32;1mUpgrade:\e[0m $1" | nocolor $OPT_no_color
+    cd "$1"
     if [ -d .git ]; then
       if [ "$OPT_dry_run" = "" ]; then
         git pull
@@ -91,7 +91,7 @@ function get_target_dir () # <target>
   local TARGETDIR
   case "$1" in
     .) TARGETDIR="${RBENV_ROOT}"            ;;
-    *) TARGETDIR="${RBENV_ROOT}/plugins/$i" ;;
+    *) TARGETDIR="${RBENV_ROOT}/plugins/$1" ;;
   esac
   if [ ! -d "$TARGETDIR" ]; then
     echo -e "\e[31;1mError:\e[0m $TARGETDIR is not directory." >&2 | nocolor $OPT_no_color
@@ -192,7 +192,7 @@ case "$ACTION" in
   list)
     printf "%-24s %s\n" "target" "target_dir"
     for i in "${ALLTARGETS[@]}"; do
-      printf "%-24s %s\n" "$i" "$(get_target_dir)"
+      printf "%-24s %s\n" "$i" "$(get_target_dir "$i")"
     done
     ;;
   *)
