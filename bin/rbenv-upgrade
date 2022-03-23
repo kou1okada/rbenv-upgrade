@@ -9,17 +9,25 @@
 #   -n/--dry-run     perform a trial run with no changes made
 #   --no-color       no color output
 #
+
+#
 # rbenv-upgrade - upgrade subcommand for rbenv.
 # Copyright (c) 2013 Koichi OKADA. All rights reserved.
 # This script is distributed under the MIT license.
 # http://www.opensource.org/licenses/mit-license.php
+#
 
-usage() {
+function usage () # [<exit code>]
+#   Display usage.
+#   If <exit code> is passed, exit with it.
+{
   rbenv-help upgrade 2>/dev/null || sed -ne '/^#/!q;s/.//;s/.//;1,4d;p' < "$0"
   [ -z "$1" ] || exit "$1"
 }
 
-nocolor() {
+function nocolor () # [<nocolor flag>]
+#   Drop color from stdin if <nocolor flag> is passed.
+{
   if [ "$1" != "" ]; then
     sed -r 's/\x1b\[([0-9]+(;[0-9]+)*)?[m]//g'
   else
@@ -27,7 +35,9 @@ nocolor() {
   fi
 }
 
-update_alltargets() {
+function update_alltargets () #
+#   Return ${ALLTARGETS[@]} for all available targets.
+{
   ALLTARGETS=(.)
   if [ "$RBENV_ROOT" != "" ]; then
     readarray -t ALLTARGETS < <(
@@ -40,8 +50,9 @@ update_alltargets() {
   fi
 }
 
-# Provide rbenv completions
-completion() {
+function completion () #
+#   Provide rbenv completions.
+{
   cat <<-EOD
 		$ALLTARGETS
 		-a
@@ -55,7 +66,9 @@ completion() {
   exit
 }
 
-upgrade() {
+function upgrade () # <target dir>
+#   Do upgrade target directory.
+{
   (
     echo -e "\e[32;1mUpgrade:\e[0m $i" | nocolor $OPT_no_color
     cd "$i"
@@ -72,7 +85,9 @@ upgrade() {
   )
 }
 
-get_target_dir() {
+function get_target_dir () # <target>
+#   Get TARGETDIR for target.
+{
   local TARGETDIR
   case "$1" in
     .) TARGETDIR="${RBENV_ROOT}"            ;;
@@ -85,8 +100,12 @@ get_target_dir() {
   echo "$TARGETDIR"
 }
 
-# Usage: update_action option action overwrite
-update_action() {
+function update_action () # [option] <action> <cause>
+#   Update action.
+# Args:
+#    <action> : New action to be set.
+#    <cause>  : The couse of updated action.
+{
   if [ "$ACTION" != "" ]; then
     echo -e "\e[31;1mWarning:\e[0m action is overwritten from $ACTION to $1 by $2." >&2 | nocolor $OPT_no_color
     usage 1

@@ -1,18 +1,24 @@
-rbenv-upgrade
-=======
-rbenv-upgrade is a upgrade subcommand for [rbenv](https://github.com/sstephenson/rbenv).
+# rbenv-upgrade
 
-Installation
-=======
+`rbenv-upgrade` is a upgrade subcommand for [rbenv](https://github.com/sstephenson/rbenv).
+
+# Installation
 
 If you already have installed rbenv to `~/.rbenv`, installation of rbenv-update is:
 
-    git clone git://github.com/kou1okada/rbenv-upgrade.git ~/.rbenv/plugins/rbenv-upgrade
+```
+git clone https://github.com/kou1okada/rbenv-upgrade ~/.rbenv/plugins/rbenv-upgrade
+```
 
-Usage
-=======
+# Usage
 
 If you want to upgrade the rbenv and all plugins, you could use:
 
-    rbenv upgrade -a
+```
+Usage: rbenv upgrade [ options ] [ targets ... ]
 
+  -a/--all         upgrade all targets
+  -l/--list        list targets
+  -n/--dry-run     perform a trial run with no changes made
+  --no-color       no color output
+```
